@@ -1,7 +1,7 @@
 import type { SiteConfig } from '@types'
 
 const config: SiteConfig = {
-  site: 'https://msyavuze.dev',
+  site: 'https://msyavuz.dev',
   title: 'Mehmet Salih Yavuz',
   description: 'A personal blog about web development, programming, and technology.',
   author: 'Mehmet Salih Yavuz',
