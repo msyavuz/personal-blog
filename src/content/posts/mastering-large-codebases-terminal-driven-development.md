@@ -98,7 +98,7 @@ This setup lets me talk to **multiple specialized AI agents at once**, all while
 
 ## Getting Started: Basic tmux + Neovim Setup
 
-If you want to try this yourself i have my dotfiles available on GitHub, which include my Neovim and tmux configurations. Although be warned, they are tailored to my personal preferences and may require some adjustments to fit your workflow. Also it takes an upfront investment of time to set up and learn the tools.:
+If you want to try this yourself i have my dotfiles available on GitHub, which include my Neovim and tmux configurations. Although be warned, they are tailored to my personal preferences and may require some adjustments to fit your workflow. Also it takes an upfront investment of time to set up and learn the tools.
 
 1. **Install [Neovim](https://neovim.io) and [telescope](https://github.com/nvim-telescope/telescope.nvim)** 
 2. **Install tmux** — use your OS package manager:
