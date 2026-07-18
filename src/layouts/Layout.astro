@@ -13,9 +13,10 @@ interface Props {
   description?: string
   tags?: string[]
   author?: string
+  published?: Date
 }
 
-const { title, description, tags, author } = Astro.props
+const { title, description, tags, author, published } = Astro.props
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href.replace(/\/$/, '') // Remove trailing slash for consistency
 const pageType = Astro.url.pathname.startsWith('/posts') ? 'article' : 'website'
 const pageTitle = title ? `${title} - ${siteConfig.title}` : siteConfig.title
@@ -103,6 +104,23 @@ for (const [themeId, themeStyles] of Object.entries(resolvedThemes)) {
   cssLines.push(`}`)
 }
 let generatedCss: string = cssLines.join('\n')
+
+// Only emit BlogPosting for real posts; `published` is set solely by [slug].astro.
+const structuredData = published
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description: pageDescription,
+      datePublished: published.toISOString(),
+      author: { '@type': 'Person', name: pageAuthor, url: siteConfig.site },
+      publisher: { '@type': 'Person', name: siteConfig.author, url: siteConfig.site },
+      image: pageImage,
+      url: pageUrl,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+      ...(tags && tags.length > 0 ? { keywords: tags.join(', ') } : {}),
+    }
+  : undefined
 ---
 
 <!doctype html>
@@ -140,6 +158,15 @@ let generatedCss: string = cssLines.join('\n')
       title={siteConfig.title}
       href={new URL('rss.xml', Astro.site)}
     />
+    {
+      structuredData && (
+        <script
+          type="application/ld+json"
+          is:inline
+          set:html={JSON.stringify(structuredData)}
+        />
+      )
+    }
     <title>{pageTitle}</title>
     <style is:global define:vars={baseCssVars}></style>
     <style is:inline set:html={generatedCss}></style>

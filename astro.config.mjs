@@ -1,4 +1,6 @@
 // @ts-check
+import fs from 'node:fs'
+import path from 'node:path'
 import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
 import sitemap from '@astrojs/sitemap'
@@ -24,6 +26,25 @@ import remarkMath from 'remark-math' /* for latex math support */
 import rehypeKatex from 'rehype-katex' /* again, for latex math support */
 import remarkGemoji from './src/plugins/remark-gemoji' /* for shortcode emoji support */
 import rehypePixelated from './src/plugins/rehype-pixelated' /* Custom plugin to handle pixelated images */
+
+/**
+ * Map post slug -> published date, read straight from frontmatter so the sitemap
+ * can emit <lastmod>. Astro's content collections aren't available at config time.
+ */
+const postsDir = './src/content/posts'
+const postDates = new Map(
+  fs
+    .readdirSync(postsDir)
+    .filter((file) => /\.mdx?$/.test(file))
+    .flatMap((file) => {
+      const raw = fs.readFileSync(path.join(postsDir, file), 'utf-8')
+      const match = raw.match(/^published:\s*(.+)$/m)
+      if (!match) return []
+      const date = new Date(match[1].trim().replace(/^['"]|['"]$/g, ''))
+      if (Number.isNaN(date.getTime())) return []
+      return [[file.replace(/\.mdx?$/, ''), date]]
+    }),
+)
 
 // https://astro.build/config
 export default defineConfig({
@@ -72,7 +93,15 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [
-    sitemap(),
+    sitemap({
+      // Tag pages are thin, auto-generated, and canonical-duplicated by /posts.
+      filter: (page) => !new URL(page).pathname.startsWith('/tags/'),
+      serialize(item) {
+        const slug = new URL(item.url).pathname.replace(/^\/posts\//, '')
+        const published = postDates.get(slug)
+        return published ? { ...item, lastmod: published.toISOString() } : item
+      },
+    }),
     expressiveCode({
       themes: siteConfig.themes.include,
       useDarkModeMediaQuery: false,
